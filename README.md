@@ -35,6 +35,34 @@ In today's e-commerce platforms, fake reviews mislead customers and affect produ
 
 ### Installation
 
+#### Option 1: Quick Start (Recommended)
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/Anshuljain1235/Fake_Review_Monitor.git
+cd Fake_Review_Monitor
+```
+
+2. **Run the startup script**
+
+**Windows:**
+```bash
+run.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x run.sh
+./run.sh
+```
+
+3. **Open your browser**
+```
+http://127.0.0.1:5000
+```
+
+#### Option 2: Manual Setup
+
 1. **Clone the repository**
 ```bash
 git clone https://github.com/Anshuljain1235/Fake_Review_Monitor.git
