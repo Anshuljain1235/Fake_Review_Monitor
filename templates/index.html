@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fake Review Monitor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header>
+  <span class="header-icon">🔍</span>
+  <div>
+    <h1>Fake Review Monitor</h1>
+    <p>ML-powered review authenticity detection using KNN + TF-IDF</p>
+  </div>
+  <span class="header-badge">KNN · TF-IDF · Flask</span>
+</header>
+
+<main>
+
+  <!-- ── Overview Stats ──────────────────────────────────────────────── -->
+  <section>
+    <div class="section-title">📊 Dataset Overview</div>
+    <div class="stats-grid">
+      <div class="stat-card purple">
+        <span class="stat-icon">📝</span>
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total Reviews</span>
+      </div>
+      <div class="stat-card red">
+        <span class="stat-icon">🚨</span>
+        <span class="stat-value">{{ stats.fake }}</span>
+        <span class="stat-label">Fake Reviews</span>
+      </div>
+      <div class="stat-card green">
+        <span class="stat-icon">✅</span>
+        <span class="stat-value">{{ stats.real }}</span>
+        <span class="stat-label">Real Reviews</span>
+      </div>
+      <div class="stat-card blue">
+        <span class="stat-icon">🎯</span>
+        <span class="stat-value">{{ stats.accuracy }}%</span>
+        <span class="stat-label">Model Accuracy</span>
+      </div>
+      <div class="stat-card yellow">
+        <span class="stat-icon">⚡</span>
+        <span class="stat-value">{{ stats.f1 }}%</span>
+        <span class="stat-label">F1 Score</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Predict ─────────────────────────────────────────────────────── -->
+  <section>
+    <div class="section-title">🤖 Classify a Review</div>
+    <div class="predict-card">
+      <h2>Enter a product review to check its authenticity</h2>
+      <div class="input-group">
+        <textarea id="review-input"
+          placeholder="Paste or type a product review here…&#10;&#10;Example: &quot;This product is absolutely amazing! Best purchase I have ever made!!!&quot;"
+          rows="5"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="classifyReview()">
+            <span id="btn-text">🔍 Analyze Review</span>
+            <div class="spinner" id="spinner"></div>
+          </button>
+          <button class="btn btn-secondary" onclick="clearInput()">✕ Clear</button>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div id="result-box">
+        <div class="result-inner" id="result-inner">
+          <div class="result-header">
+            <span class="result-emoji" id="result-emoji"></span>
+            <div>
+              <div class="result-label" id="result-label"></div>
+              <div class="result-confidence" id="result-confidence"></div>
+            </div>
+          </div>
+
+          <div class="prob-bars">
+            <div class="prob-row">
+              <span>Real</span>
+              <div class="prob-track">
+                <div class="prob-fill real" id="bar-real" style="width:0%"></div>
+              </div>
+              <span class="prob-pct" id="pct-real"></span>
+            </div>
+            <div class="prob-row">
+              <span>Fake</span>
+              <div class="prob-track">
+                <div class="prob-fill fake" id="bar-fake" style="width:0%"></div>
+              </div>
+              <span class="prob-pct" id="pct-fake"></span>
+            </div>
+          </div>
+
+          <div class="flags" id="flags-section" style="display:none">
+            <h4>⚠️ Red Flags Detected</h4>
+            <div id="flags-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Sample Reviews ──────────────────────────────────────────────── -->
+  <section>
+    <div class="section-title">💡 Try Sample Reviews</div>
+    <div class="samples-grid">
+      <div class="sample-card" onclick="loadSample(this)">
+        <span class="badge fake">Likely Fake</span>
+        <p>"BEST PRODUCT EVER!!! I bought 10 of these for my family. Everyone loves it!!! Life changing!!!"</p>
+        <div class="click-hint">↑ Click to analyze</div>
+      </div>
+      <div class="sample-card" onclick="loadSample(this)">
+        <span class="badge real">Likely Real</span>
+        <p>"Decent product. The build quality could be better but for the price it is acceptable. Arrived on time."</p>
+        <div class="click-hint">↑ Click to analyze</div>
+      </div>
+      <div class="sample-card" onclick="loadSample(this)">
+        <span class="badge fake">Likely Fake</span>
+        <p>"I was given this product for free in exchange for a review. It is absolutely amazing and perfect!"</p>
+        <div class="click-hint">↑ Click to analyze</div>
+      </div>
+      <div class="sample-card" onclick="loadSample(this)">
+        <span class="badge real">Likely Real</span>
+        <p>"Stopped working after two weeks. Customer service was unhelpful. Would not recommend."</p>
+        <div class="click-hint">↑ Click to analyze</div>
+      </div>
+      <div class="sample-card" onclick="loadSample(this)">
+        <span class="badge fake">Likely Fake</span>
+        <p>"This product cured my chronic pain of 10 years in just one hour! Miracle results! Buy now!"</p>
+        <div class="click-hint">↑ Click to analyze</div>
+      </div>
+      <div class="sample-card" onclick="loadSample(this)">
+        <span class="badge real">Likely Real</span>
+        <p>"Good value for money. Packaging was a bit damaged but the product itself is fine. Would buy again."</p>
+        <div class="click-hint">↑ Click to analyze</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Charts ──────────────────────────────────────────────────────── -->
+  <section>
+    <div class="section-title">📈 Data Visualizations</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Fake vs Real Distribution</h3>
+        <img src="data:image/png;base64,{{ charts.label_dist }}" alt="Label Distribution" />
+      </div>
+      <div class="chart-card">
+        <h3>Review Composition</h3>
+        <img src="data:image/png;base64,{{ charts.pie }}" alt="Pie Chart" />
+      </div>
+      <div class="chart-card">
+        <h3>Rating Distribution by Label</h3>
+        <img src="data:image/png;base64,{{ charts.rating_dist }}" alt="Rating Distribution" />
+      </div>
+      <div class="chart-card">
+        <h3>Confusion Matrix</h3>
+        <img src="data:image/png;base64,{{ charts.confusion }}" alt="Confusion Matrix" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Model Performance ───────────────────────────────────────────── -->
+  <section>
+    <div class="section-title">🏆 Model Performance</div>
+    <div class="metrics-grid">
+      <div class="metric-pill">
+        <div class="val">{{ metrics.accuracy }}%</div>
+        <div class="lbl">Accuracy</div>
+      </div>
+      <div class="metric-pill">
+        <div class="val">{{ metrics.precision }}%</div>
+        <div class="lbl">Precision</div>
+      </div>
+      <div class="metric-pill">
+        <div class="val">{{ metrics.recall }}%</div>
+        <div class="lbl">Recall</div>
+      </div>
+      <div class="metric-pill">
+        <div class="val">{{ metrics.f1 }}%</div>
+        <div class="lbl">F1 Score</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Performance Metrics Comparison</h3>
+      <img src="data:image/png;base64,{{ charts.metrics_bar }}" alt="Metrics Bar Chart" />
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Fake Review Monitor &nbsp;·&nbsp; KNN + TF-IDF &nbsp;·&nbsp; Built with Flask &amp; scikit-learn
+</footer>
+
+<script>
+  async function classifyReview() {
+    const text = document.getElementById("review-input").value.trim();
+    if (!text) {
+      alert("Please enter a review to analyze.");
+      return;
+    }
+
+    // Show spinner
+    document.getElementById("btn-text").textContent = "Analyzing…";
+    document.getElementById("spinner").style.display = "block";
+    document.getElementById("result-box").style.display = "none";
+
+    try {
+      const res  = await fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ review: text }),
+      });
+      const data = await res.json();
+
+      if (data.error) { alert(data.error); return; }
+
+      renderResult(data);
+    } catch (e) {
+      alert("Something went wrong. Please try again.");
+    } finally {
+      document.getElementById("btn-text").textContent = "🔍 Analyze Review";
+      document.getElementById("spinner").style.display = "none";
+    }
+  }
+
+  function renderResult(data) {
+    const isFake = data.label === "fake";
+    const box    = document.getElementById("result-box");
+    const inner  = document.getElementById("result-inner");
+
+    inner.className = "result-inner " + data.label;
+    document.getElementById("result-emoji").textContent  = isFake ? "🚨" : "✅";
+    document.getElementById("result-label").textContent  = isFake ? "Fake Review" : "Real Review";
+    document.getElementById("result-label").className    = "result-label " + data.label;
+    document.getElementById("result-confidence").textContent =
+      `Confidence: ${data.confidence}%`;
+
+    // Probability bars (animate after display)
+    document.getElementById("bar-real").style.width = "0%";
+    document.getElementById("bar-fake").style.width = "0%";
+    document.getElementById("pct-real").textContent = data.real_pct + "%";
+    document.getElementById("pct-fake").textContent = data.fake_pct + "%";
+
+    box.style.display = "block";
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById("bar-real").style.width = data.real_pct + "%";
+        document.getElementById("bar-fake").style.width = data.fake_pct + "%";
+      });
+    });
+
+    // Flags
+    const flagsSection = document.getElementById("flags-section");
+    const flagsList    = document.getElementById("flags-list");
+    if (data.flags && data.flags.length > 0) {
+      flagsList.innerHTML = data.flags
+        .map(f => `<span class="flag-item">⚠ ${f}</span>`)
+        .join("");
+      flagsSection.style.display = "block";
+    } else {
+      flagsSection.style.display = "none";
+    }
+
+    box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function clearInput() {
+    document.getElementById("review-input").value = "";
+    document.getElementById("result-box").style.display = "none";
+  }
+
+  function loadSample(card) {
+    const text = card.querySelector("p").textContent.replace(/^"|"$/g, "");
+    document.getElementById("review-input").value = text;
+    document.getElementById("review-input").scrollIntoView({ behavior: "smooth" });
+    classifyReview();
+  }
+
+  // Allow Ctrl+Enter to submit
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("review-input").addEventListener("keydown", e => {
+      if (e.ctrlKey && e.key === "Enter") classifyReview();
+    });
+  });
+</script>
+
+</body>
+</html>
