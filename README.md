@@ -7,6 +7,11 @@ An intelligent web application that detects fake product reviews using Machine L
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.5+-orange.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
+## 📸 Screenshots
+
+![Dashboard](https://via.placeholder.com/800x400/1a1a2e/a78bfa?text=Dashboard+Preview)
+*Modern dark-themed dashboard with real-time classification*
+
 ## 🎯 Problem Statement
 
 In today's e-commerce platforms, fake reviews mislead customers and affect product credibility. Many sellers post manipulated or spam reviews to increase ratings. This system automatically detects such fake reviews using Machine Learning.
